@@ -10,6 +10,7 @@ public class Server {
     private AuthService authService;
     private static File thisDirectory;
     private static File storyMsg;
+    private static OutputStream os;
     public AuthService getAuthService() {
         return authService;
     }
@@ -32,18 +33,20 @@ public class Server {
         System.out.println("Сервер завершил свою работу");
     }
 
-    public void broadcastMsg(String msg) {
+    public void broadcastMsg(String msg) throws IOException {
         for (ClientHandler o : clients) {
             o.sendMsg(msg);
         }
         try {//доави
-            OutputStream os = new BufferedOutputStream(new FileOutputStream(thisDirectory + "\\message_history.txt", true));
+            os = new BufferedOutputStream(new FileOutputStream(thisDirectory + "\\message_history.txt", true));
             os.write((msg+"\n").getBytes());
-            os.close();
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            os.close();
         }
     }
 
