@@ -8,7 +8,9 @@ import java.util.Vector;
 public class Server {
     private Vector<ClientHandler> clients;
     private AuthService authService;
-
+    private static File thisDirectory;
+    private static File storyMsg;
+    private static OutputStream os;
     public AuthService getAuthService() {
         return authService;
     }
@@ -18,6 +20,7 @@ public class Server {
         authService = new SimpleAuthService();
         try (ServerSocket serverSocket = new ServerSocket(8189)) {
             MyDB instance = MyDB.getInstance();
+            createFileWithStoryMessage();////////////Создаю файл при запуске сервера
             System.out.println("Сервер запущен на порту 8189");
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -30,13 +33,35 @@ public class Server {
         System.out.println("Сервер завершил свою работу");
     }
 
-    public void broadcastMsg(String msg) {
+    public void broadcastMsg(String msg) throws IOException {
         for (ClientHandler o : clients) {
             o.sendMsg(msg);
         }
+        try {//доави
+            os = new BufferedOutputStream(new FileOutputStream(thisDirectory + "\\message_history.txt", true));
+            os.write((msg+"\n").getBytes());
 
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            os.close();
+        }
     }
 
+
+    public static void createFileWithStoryMessage() {
+        try {
+            thisDirectory = new File("client/src/main/java/com/geekbrains/client");
+            thisDirectory.mkdir();
+            storyMsg = new File(thisDirectory + "\\message_history.txt");
+            storyMsg.createNewFile();
+            //return storyMsg;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void privateMsg(ClientHandler sender, String receiverNick, String msg) {
         if (sender.getNickname().equals(receiverNick)) {
