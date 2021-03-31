@@ -1,10 +1,17 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class Competitions {
+class Competition {
     public static final int CARS_COUNT = 4;
+    public static CyclicBarrier cb;
+    public static Semaphore smr = new Semaphore(2);;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws BrokenBarrierException, InterruptedException {
+        Competition.cb = new CyclicBarrier(CARS_COUNT+1);
         System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Подготовка!!!");
         Race race = new Race(new Road(60), new Tunnel(), new Road(40));
         Car[] cars = new Car[CARS_COUNT];
@@ -14,14 +21,17 @@ public class Competitions {
         for (int i = 0; i < cars.length; i++) {
             new Thread(cars[i]).start();
         }
+        cb.await();
         System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка началась!!!");
+        cb.await();
+        cb.await();
         System.out.println("ВАЖНОЕ ОБЪЯВЛЕНИЕ >>> Гонка закончилась!!!");
     }
 }
 
 class Car implements Runnable {
     private static int CARS_COUNT;
-
+    private static final AtomicInteger place = new AtomicInteger();
     static {
         CARS_COUNT = 0;
     }
@@ -48,14 +58,25 @@ class Car implements Runnable {
     @Override
     public void run() {
         try {
+
             System.out.println(this.name + " готовится");
             Thread.sleep(500 + (int) (Math.random() * 800));
             System.out.println(this.name + " готов");
+            Competition.cb.await();
+            Competition.cb.await();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         for (int i = 0; i < race.getStages().size(); i++) {
             race.getStages().get(i).go(this);
+        }
+        System.out.println(this.name + " - " + place.incrementAndGet());
+        try {
+            Competition.cb.await();
+        } catch (InterruptedException | BrokenBarrierException e) {
+            e.printStackTrace();
         }
     }
 }
@@ -100,12 +121,15 @@ class Tunnel extends Stage {
         try {
             try {
                 System.out.println(c.getName() + " готовится к этапу(ждет): " + description);
+                Competition.smr.acquire();
                 System.out.println(c.getName() + " начал этап: " + description);
+
                 Thread.sleep(length / c.getSpeed() * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
                 System.out.println(c.getName() + " закончил этап: " + description);
+                Competition.smr.release();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,4 +148,3 @@ class Race {
         this.stages = new ArrayList<>(Arrays.asList(stages));
     }
 }
-
