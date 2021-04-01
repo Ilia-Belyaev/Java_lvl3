@@ -3,6 +3,8 @@ package com.geekbrains.server;
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientHandler {
     private String nickname;
@@ -10,7 +12,7 @@ public class ClientHandler {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-
+    private static final Logger loggerClient = Logger.getLogger(com.geekbrains.server.ClientHandler.class.getName());
 
     public String getNickname() {
         return nickname;
@@ -34,6 +36,7 @@ public class ClientHandler {
                                 sendMsg("/authok " + nick);
                                 nickname = nick;
                                 server.subscribe(this);
+                                loggerClient.log(Level.INFO,"Клиент " + nickname + " присоединился к чату." );
                                 break;
                             }
                         }
@@ -43,14 +46,17 @@ public class ClientHandler {
                         if (msg.startsWith("/")) {
                             if (msg.equals("/end")) {
                                 sendMsg("/end");
+                                loggerClient.log(Level.INFO,"Клиент " + nickname + " вышел из чата." );
                                 break;
                             }
                             if (msg.startsWith("/w ")) {
                                 String[] tokens = msg.split("\\s", 3);
                                 server.privateMsg(this, tokens[1], tokens[2]);
+                                //loggerClient.log(Level.INFO,"Клиент " + nickname + " отправил приватное сообщение клиенту ");
                             }
                         } else {
                             server.broadcastMsg(nickname + ": " + msg);
+
                         }
                     }
                 } catch (IOException e) {
