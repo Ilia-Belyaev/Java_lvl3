@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CreateArrayTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2021-04-01T06:49:19" hostname="COMP-PC" time="0.07">
+  <properties/>
+  <testcase name="test1()" classname="CreateArrayTest" time="0.055"/>
+  <testcase name="test2()" classname="CreateArrayTest" time="0.002"/>
+  <testcase name="test3()" classname="CreateArrayTest" time="0.004"/>
+  <testcase name="test4()" classname="CreateArrayTest" time="0.003"/>
+  <system-out><![CDATA[5	6	7	8	9	10	
+10	
+
+2	3	5	6	7	8	9	10	10	
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
